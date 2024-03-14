@@ -32,7 +32,7 @@ class API {
                     credentials: "include",
                 };
 
-                const response = await fetch("http://localhost:5000/" + path, options);
+                const response = await fetch("https://tak-cration-backend.onrender.com/" + path, options);
                 console.log(path, "path");
                 if (response.ok) {
                     const responseData = await response.json();
@@ -63,7 +63,7 @@ class API {
                 headers.append("Authorization", `Bearer ${accessToken}`);
             }
 
-            const response = await fetch(`http://localhost:5000/${path}`, {
+            const response = await fetch(`https://tak-cration-backend.onrender.com/${path}`, {
                 method: "POST",
                 credentials: "include",
                 headers: headers,
