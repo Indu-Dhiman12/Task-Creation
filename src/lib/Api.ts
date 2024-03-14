@@ -111,7 +111,6 @@ class API {
                         resent,
                         path
                     );
-                    resolve(parsed);
                 })
                 .catch((err: any) => {
                     if (err.status == undefined) {
@@ -159,7 +158,6 @@ class API {
 
                     // if (Process.isDev) console.log("PUT", path, "\n", parsed);
 
-                    resolve(parsed);
                 })
                 .catch((err: any) => {
                     if (err.status == undefined) {
@@ -207,7 +205,6 @@ class API {
                         path
                     );
 
-                    resolve(parsed);
                 })
                 .catch((err: any) => {
                     if (err.status == undefined) {
@@ -229,8 +226,9 @@ class API {
         res.resend = resend;
         res.resent = resent;
 
-        if (!res.success) return await Error.handle(res, path);
-        return res;
+        if (!res.success) {
+            return res;
+        }
     }
 }
 
