@@ -1,256 +1,160 @@
+
 "use client"
-import EditPopup from '@/components/EditPopUp';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useRouter } from "next/navigation";
+import Link from 'next/link';
 import API from '@/lib/Api';
 
-const TaskManager = () => {
-    const [tasks, setTasks] = useState<any>([]);
-    const [task, setTask] = useState<any>('');
-    const [editTask, setEditTask] = useState([])
-    const [error, setErrors] = useState<any>("")
-    const [Id, setId] = useState<any>("")
-    const [showEditPopup, setShowEditPopup] = useState(false);
-    const [selectAll, setSelectAll] = useState(false);
-    const [selectedTasks, setSelectedTasks] = useState<any>([]);
+const TaskCreation = () => {
+    const router = useRouter()
+    const [formData, setFormData] = useState<any>({
+        task: "",
+        description: "",
+        file: ""
+    })
+    const [errors, setErrors] = useState({
+        task: "",
+        description: "",
+        general: "",
+        file: ""
 
-    useEffect(() => {
-        fetchTasks()
-    }, [])
+    });
+    const handleChange = (e: any) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+        setErrors({
+            ...errors,
+            [e.target.name]: ""
+        });
+    };
+    const handelAdd = async (e: any) => {
+        e.preventDefault();
+        let formValid = true;
 
-    useEffect(() => {
-        if (selectedTasks.length > 0 && selectedTasks.length == tasks.length) {
-            setSelectAll(true)
+        if (!formData.task) {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                task: "Task is Required",
+            }));
+            formValid = false;
         }
-        else {
-            setSelectAll(false)
-        }
-    }, [selectedTasks, tasks])
 
-    const handleAddTask = async () => {
+        if (!formData.description) {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                description: "Description is Required",
+            }));
+            formValid = false;
+        }
+        if (!formData.file) {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                file: "Image Upload is Required",
+            }));
+            formValid = false;
+        }
+
+        if (!formValid) {
+            return;
+        }
+
         try {
-            if (!task) {
-                setErrors("Add Task is Required");
-                return;
-            }
-
-            const response: any = await API.post('addTask', { task })
-
+            const response: any = await API.post('addTask', formData)
             if (response.status == 201) {
-                fetchTasks();
-                setErrors("");
-                setTask('');
 
-            }
-            else {
-                setErrors(response.error);
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const fetchTasks = async () => {
-        try {
-            const response: any = await API.get('getTask')
-
-            if (response) {
-                setTasks(response);
+                setFormData({});
             } else {
-                console.error('Fetching tasks failed');
+                setErrors((prevErrors) => ({
+                    ...prevErrors,
+                    general: response.error || "Login failed",
+                }));
+
             }
         } catch (error) {
-            console.error('Error during fetching tasks:', error);
-        }
-    };
-
-    const handleEdit = async (taskId: number) => {
-        try {
-            const response = await fetch(`http://localhost:5000/getTask/${taskId}`);
-
-            if (response.ok) {
-                const taskData = await response.json();
-                setEditTask(taskData.task);
-                setId(taskData.id)
-                setShowEditPopup(true);
-            }
-        } catch (error) {
-            console.error('Error during editing task:', error);
-        }
-    };
-    const handleEditSave = async (id: any, task: any) => {
-        try {
-
-            const response = await fetch(`http://localhost:5000/task/${Id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ task: task, id: Id }),
-            });
-
-            if (response.ok) {
-                const responseData = await response.json();
-                setEditTask(responseData.task);
-                setShowEditPopup(false)
-                fetchTasks()
-
-            } else {
-                console.error('Error updating task:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error during task update:', error);
-        }
-    };
-
-
-    const handleDeleteTask = async (taskId: number) => {
-        try {
-            const response = await fetch(`http://localhost:5000/deleteTask/${taskId}`, {
-                method: 'DELETE',
-            });
-
-            if (response.ok) {
-                fetchTasks()
-            }
-        } catch (error) {
-        }
-    };
-    const handleCancelEdit = () => {
-        setShowEditPopup(false)
-    }
-    const selectedAll = () => {
-        setSelectAll(!selectAll);
-        const newSelectedTasks = selectAll ? [] : tasks.map((task: any) => task.id);
-        setSelectedTasks(newSelectedTasks);
-
-
-    };
-
-    const handleCheckboxChange = (taskId: any) => {
-        const newSelectedTasks = selectedTasks.includes(taskId)
-            ? selectedTasks.filter((id: any) => id !== taskId)
-            : [...selectedTasks, taskId];
-
-        setSelectedTasks(newSelectedTasks);
-
-        // const data = tasks.filter((item: any) => newSelectedTasks.includes(item.id));
-
-        // setSelectedData(data)
-
-    };
-
-    const handleCompleteTask = async () => {
-        if (selectedTasks && selectedTasks.length > 0) {
-            try {
-
-                const response: any = await API.post('completeTask', { id: selectedTasks })
-                if (response) {
-                    fetchTasks()
-                }
-            }
-            catch (err) {
-
-            }
-
+            console.error('Error during registration:', error);
         }
     }
     return (
-        <>
-            {showEditPopup && (
-                <EditPopup
-                    task={editTask}
-                    onEdit={handleEdit}
-                    onSave={handleEditSave}
-                    onCancel={handleCancelEdit}
-                />
-            )}
-            <div className="max-w-screen-xl mx-auto mt-8 p-6 bg-white rounded-md shadow-md">
-                <div className="flex items-center mb-4">
-                    <input
-                        className="flex-grow border-b-2 border-gray-300 py-2 px-3 focus:outline-none focus:border-blue-500"
-                        type="text"
-                        name="task"
-                        placeholder="Enter task"
-                        value={task}
-                        onChange={(e) => setTask(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                handleAddTask();
-                            }
-                        }}
-                    />
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+                <h2 className="text-2xl font-semibold mb-6 text-center">Add your Task</h2>
+                <form>
+                    <div className="mb-4">
+                        <label htmlFor="task" className="block text-gray-700 text-sm font-medium mb-2">
+                            Task Name
+                        </label>
+                        <input
+                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+                            type="text"
+                            name="task"
+                            placeholder="Enter Task"
+                            value={formData.task || ""}
+                            onChange={(e: any) => handleChange(e)}
+
+                        />
+                        {errors.task && (
+                            <p className="text-red-500 text-sm mt-1">{errors.task}</p>
+                        )}                    </div>
+                    <div className="mb-6">
+                        <label htmlFor="description" className="block text-gray-700 text-sm font-medium mb-2">
+                            Description
+                        </label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+                            placeholder="Enter Description"
+                            value={formData.description || ""}
+                            onChange={(e: any) => handleChange(e)}
+                            rows={5}
+                        />
+                        {errors.description && (
+                            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                        )}
+                    </div>
+
+                    <div className="mb-6">
+                        <label htmlFor="file" className="block text-gray-700 text-sm font-medium mb-2">
+                            Image Upload
+                        </label>
+                        <input
+                            type="file"
+                            id="file"
+                            name="file"
+                            value={formData.file || ""}
+                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+                            onChange={(e: any) => handleChange(e)}
+                        />
+                        {errors.file && (
+                            <p className="text-red-500 text-sm mt-1">{errors.file}</p>
+                        )}
+                    </div>
 
                     <button
-                        className="ml-2 bg-[#A05] text-white py-2 px-4 rounded-md"
-                        onClick={handleAddTask}
+                        type="submit"
+                        onClick={handelAdd}
+                        // onKeyDown={(e) => {
+                        //     if (e.key === 'Enter') {
+                        //         handleAddTask();
+                        //     }
+                        // }}
+                        className="w-full bg-[#A05] text-white p-3 rounded-md hover: bg-[#A06] focus:outline-none focus: bg-[#A05]"
                     >
-                        Add Task</button>
-                </div>
-                {error && (
-                    <div className="text-red-500 mb-4">
-                        {error}
-                    </div>
-                )}
-                <table className="w-full text-center">
-                    <thead>
-                        <tr className="bg-gray-200">
-                            <th className="py-2 px-4">S No.</th>
-                            <th className="py-2 px-4">Task</th>
-                            <th className="py-2 px-4">Action</th>
-                            <th className="py-2 px-4">
-                                <input type="checkbox" className='mr-8' onClick={selectedAll} onChange={() => { }} checked={selectAll} />
-                                Select
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody >
-                        {tasks.map((task: any, index: any) => (
-                            <tr key={index} className={index % 2 === 0 ? 'bg-gray-100' : 'bg-white'} >
-                                <td className="py-2 px-4 ">{index + 1}</td>
-                                <td className="py-2 px-4 ">{task.task}</td>
-                                <td className="py-2 px-4">
-                                    <button
-                                        className="bg-yellow-500 text-white py-1 px-2 mr-2 rounded-md"
-                                        onClick={() => {
-                                            handleEdit(task.id);
-                                            setShowEditPopup(true);
-                                        }}
-
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        className="bg-red-500 text-white py-1 px-2 rounded-md"
-                                        onClick={() => handleDeleteTask(task.id)}
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                                <td>
-                                    <input type="checkbox" className="mr-20"
-                                        checked={selectedTasks.includes(task.id) || ''}
-                                        onChange={() => handleCheckboxChange(task.id)} />
-                                </td>
-                            </tr>
-                        ))}
-
-                    </tbody>
-
-                </table>
-                <div className='flex justify-end'>
-                    <button className="ml-2 bg-[#A05] text-white py-2 px-4 rounded-md mt-4 "
-                        onClick={handleCompleteTask}>
-                        Complete Task
+                        Add
                     </button>
-                </div>
-
+                    <div className="flex justify-between">
+                        <h4 className="block text-gray-700 text-sm font-medium m-2">Want Task List ?</h4>
+                        <h4 className="text-gray-700 text-sm font-medium m-2">
+                            <Link href="/task-creation-list" className="hover:text-blue-500">All Task List </Link>
+                        </h4>
+                    </div>
+                </form>
             </div>
-        </>
+        </div>
     );
 };
 
-
-export default TaskManager;
-
-
+export default TaskCreation;
 

@@ -24,8 +24,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <link rel="icon" href="/logo1.png" sizes="any" />
-        {children}
-
+        <div id="root">{children}</div>
 
       </body>
     </html>

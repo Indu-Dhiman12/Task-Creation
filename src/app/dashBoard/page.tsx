@@ -47,8 +47,6 @@ export default function Dashboard() {
                 </div>
             </div>
 
-
-            {/* <link */}
             <div className="max-w-screen-xl mx-auto mt-8 p-6 bg-white rounded-md shadow-md">
                 <div className="flex items-center mb-4">
                     <table className="w-full text-center">
@@ -69,7 +67,8 @@ export default function Dashboard() {
                         </tbody>
 
                     </table>
-                </div></div>
+                </div>
+            </div>
         </>
     )
 }

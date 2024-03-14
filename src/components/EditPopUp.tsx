@@ -2,23 +2,38 @@
 import React, { useEffect, useState } from 'react';
 
 const EditPopup = ({ task, onSave, onCancel }: any) => {
-    const [editedTask, setEditedTask] = useState("");
-    const [error, setError] = useState("");
-
+    const [editedTask, setEditedTask] = useState({
+        task: "",
+        description: ""
+    });
+    const [error, setError] = useState({
+        task: "",
+        description: ""
+    });
 
     useEffect(() => {
-        setEditedTask(task)
-    }, [task])
+        if (task) {
+            setEditedTask(task);
+        }
+    }, [task]);
+
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setEditedTask(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
 
     const handleSave = () => {
-        if (editedTask.trim() === "") {
-            setError("Task cannot be empty");
+        if (!editedTask.task.trim()) {
+            setError({ task: "Task cannot be empty", description: "" });
         } else {
-            setError("");
+            setError({ task: "", description: "" });
             onSave(task.id, editedTask);
         }
     };
-
 
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -27,16 +42,20 @@ const EditPopup = ({ task, onSave, onCancel }: any) => {
                 <h2 className="text-xl font-bold mb-4">Edit Task</h2>
                 <input
                     type="text"
-                    value={editedTask}
-                    onChange={(e) => setEditedTask(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            handleSave();
-                        }
-                    }}
+                    name="task"
+                    value={editedTask.task || ""}
+                    onChange={(e) => handleChange(e)}
                     className="w-full border border-gray-300 p-2 mb-4 rounded-md focus:outline-none"
                 />
-                {error && <p className="text-red-500 mb-2">{error}</p>}
+                {error.task && <p className="text-red-500 mb-2">{error.task}</p>}
+
+                <input
+                    type="text"
+                    name="description"
+                    value={editedTask.description || ""}
+                    onChange={(e) => handleChange(e)}
+                    className="w-full border border-gray-300 p-2 mb-4 rounded-md focus:outline-none"
+                />
 
                 <div className="flex justify-end">
                     <button
@@ -57,4 +76,4 @@ const EditPopup = ({ task, onSave, onCancel }: any) => {
     );
 };
 
-export default EditPopup
+export default EditPopup;

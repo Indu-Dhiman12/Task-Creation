@@ -53,8 +53,7 @@ const LoginPage = () => {
         try {
             const response: any = await API.post('login-user', formData)
             if (response.status == 200) {
-                console.log(response, "response");
-                router.push("/dashBoard")
+                router.push("/task-creation")
                 localStorage.setItem("token", response.accessToken)
             } else {
                 setErrors((prevErrors) => ({

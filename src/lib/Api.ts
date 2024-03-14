@@ -1,4 +1,5 @@
 
+
 export interface Res {
     success: boolean;
     status: number;
@@ -7,12 +8,12 @@ export interface Res {
     [key: string]: any;
 }
 
-
 class API {
     static async get(
         path: string | string[],
         resent: boolean = false
     ): Promise<Res> {
+
         return new Promise(async (resolve) => {
             try {
                 if (Array.isArray(path)) path = path.join("/");
@@ -25,6 +26,9 @@ class API {
                 if (accessToken) {
                     headers.append("Authorization", `Bearer ${accessToken}`);
                 }
+                else {
+                    window.location.href = "/auth/login"
+                }
 
                 let options: any = {
                     headers: headers,
@@ -32,8 +36,7 @@ class API {
                     credentials: "include",
                 };
 
-                const response = await fetch("https://tak-cration-backend.onrender.com/" + path, options);
-                console.log(path, "path");
+                const response = await fetch(process.env.BASE_URL + path, options);
                 if (response.ok) {
                     const responseData = await response.json();
                     resolve(responseData);
@@ -63,7 +66,7 @@ class API {
                 headers.append("Authorization", `Bearer ${accessToken}`);
             }
 
-            const response = await fetch(`https://tak-cration-backend.onrender.com/${path}`, {
+            const response = await fetch(process.env.BASE_URL + path, {
                 method: "POST",
                 credentials: "include",
                 headers: headers,
@@ -98,7 +101,7 @@ class API {
                 );
             }
 
-            await fetch(process.env.NEXT_PUBLIC_API_URL + path, {
+            await fetch(process.env.BASE_URL + path, {
                 method: "POST",
                 credentials: "include",
                 headers: headers,
@@ -142,35 +145,22 @@ class API {
                 );
             }
 
-            await fetch(process.env.NEXT_PUBLIC_API_URL + path, {
-                method: "PUT",
-                credentials: "include",
-                headers: headers,
-                body: JSON.stringify(body),
-            })
-                .then(async (res: Response) => {
-                    let parsed = await this.parseRes(
-                        res,
-                        () => this.post(path, body, true),
-                        resent,
-                        path
-                    );
-
-                    // if (Process.isDev) console.log("PUT", path, "\n", parsed);
-
-                })
-                .catch((err: any) => {
-                    if (err.status == undefined) {
-                        // Route.load("/maintenance");
-                    }
-                    console.error(err);
+            try {
+                const res: any = await fetch(process.env.BASE_URL + path, {
+                    method: "PUT",
+                    credentials: "include",
+                    headers: headers,
+                    body: JSON.stringify(body),
                 });
+                resolve(res); // Resolve with the response
+            } catch (err) {
+                console.log(err)
+            }
         });
     }
 
     static async delete(
         path: string | string[],
-        body: any,
         resent: boolean = false
     ): Promise<Res> {
         return new Promise(async (resolve) => {
@@ -191,27 +181,17 @@ class API {
                 );
             }
 
-            await fetch(process.env.NEXT_PUBLIC_API_URL + path, {
-                method: "DELETE",
-                credentials: "include",
-                headers: headers,
-                body: JSON.stringify(body),
-            })
-                .then(async (res: Response) => {
-                    let parsed = await this.parseRes(
-                        res,
-                        () => this.post(path, body, true),
-                        resent,
-                        path
-                    );
-
-                })
-                .catch((err: any) => {
-                    if (err.status == undefined) {
-                    }
-                    console.error(err);
+            try {
+                const res: any = await fetch(process.env.BASE_URL + path, {
+                    method: "DELETE",
+                    credentials: "include",
+                    headers: headers,
                 });
-        });
+                resolve(res); // Resolve with the response
+            } catch (err) {
+                console.log(err)
+            }
+        })
     }
 
     static async parseRes(
