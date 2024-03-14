@@ -8,7 +8,7 @@ import Dashboard from "./dashBoard/page";
 export default function Home() {
   const router = useRouter();
 
-  const token = window && window.localStorage.getItem('token')
+  const token = typeof window !== 'undefined' && window.localStorage.getItem('token')
 
 
   useEffect(() => {
